@@ -1,23 +1,29 @@
-import logo from './logo.svg';
+/*
+ * @Descripttion: 
+ * @Author: shendan
+ * @Date: 2021-11-23 09:57:22
+ * @LastEditors: shendan
+ * @LastEditTime: 2021-11-23 15:16:13
+ */
+import React from 'react';
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import FileSearch from './components/FileSearch'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="App container-fluid">
+      <div className="row">
+        <div className="col-3 bg-light left-panel">
+          <FileSearch
+            title="我的云文档"
+            onFileSearch={value => console.log(value)}
+          />
+        </div>
+        <div className="col-9 bg-primary right-panel">
+          <h1>this is the right</h1>
+        </div>
+      </div>
     </div>
   );
 }
