@@ -7,3 +7,7 @@
   border: none;
   color: inherit;
 }
+
+.c-link {
+  cursor: pointer;
+}
