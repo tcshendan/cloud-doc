@@ -3,37 +3,33 @@
  * @Author: shendan
  * @Date: 2021-11-24 09:39:24
  * @LastEditors: shendan
- * @LastEditTime: 2021-11-24 10:51:00
+ * @LastEditTime: 2021-11-24 11:12:13
  */
 import React, { useState, useEffect } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { faMarkdown } from '@fortawesome/free-brands-svg-icons'
 import PropTypes from 'prop-types'
+import useKeyPress from '../hooks/useKeyPress'
 
 const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const [editStatus, setEditStatus] = useState(false)
   const [value, setValue] = useState('')
-  const closeSearch = (e) => {
-    e.preventDefault()
+  const enterPressed = useKeyPress(13)
+  const escPressed = useKeyPress(27)
+  const closeSearch = () => {
     setEditStatus(false)
     setValue('')
   }
   useEffect(() => {
-    const handleInputEvent = (event) => {
-      const { keyCode } = event
-      if (keyCode === 13 && editStatus) {
-        const editItem = files.find(file => file.id === editStatus)
-        onSaveEdit(editItem.id, value)
-        setEditStatus(false)
-        setValue('')
-      } else if (keyCode === 27 && editStatus) {
-        closeSearch(event)
-      }
+    if (enterPressed && editStatus) {
+      const editItem = files.find(file => file.id === editStatus)
+      onSaveEdit(editItem.id, value)
+      setEditStatus(false)
+      setValue('')
     }
-    document.addEventListener('keyup', handleInputEvent)
-    return () => {
-      document.removeEventListener('keyup', handleInputEvent)
+    if (escPressed && editStatus) {
+      closeSearch()
     }
   })
   return (
