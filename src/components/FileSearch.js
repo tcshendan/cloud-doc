@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2021-11-23 11:04:59
  * @LastEditors: shendan
- * @LastEditTime: 2021-11-24 11:10:19
+ * @LastEditTime: 2022-01-05 11:58:30
  */
 import React, { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -20,6 +20,7 @@ const FileSearch = ({ title, onFileSearch }) => {
   const closeSearch = () => {
     setInputActive(false)
     setValue('')
+    onFileSearch('')
   }
   useEffect(() => {
     if (enterPressed && inputActive) {
@@ -35,7 +36,7 @@ const FileSearch = ({ title, onFileSearch }) => {
     }
   }, [inputActive])
   return (
-    <div className="alert alert-primary d-flex justify-content-between align-items-center">
+    <div className="alert alert-primary d-flex justify-content-between align-items-center mb-0">
       { !inputActive &&
         <>
           <span>{title}</span>

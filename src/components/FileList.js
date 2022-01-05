@@ -3,9 +3,9 @@
  * @Author: shendan
  * @Date: 2021-11-24 09:39:24
  * @LastEditors: shendan
- * @LastEditTime: 2021-11-24 11:12:13
+ * @LastEditTime: 2022-01-05 14:22:01
  */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { faMarkdown } from '@fortawesome/free-brands-svg-icons'
@@ -17,30 +17,47 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const [value, setValue] = useState('')
   const enterPressed = useKeyPress(13)
   const escPressed = useKeyPress(27)
-  const closeSearch = () => {
+  let node = useRef(null)
+  const closeSearch = (editItem) => {
     setEditStatus(false)
     setValue('')
+    if (editItem.isNew) {
+      onFileDelete(editItem.id)
+    }
   }
   useEffect(() => {
-    if (enterPressed && editStatus) {
-      const editItem = files.find(file => file.id === editStatus)
+    const editItem = files.find(file => file.id === editStatus)
+    if (enterPressed && editStatus && value.trim() !== '') { 
       onSaveEdit(editItem.id, value)
       setEditStatus(false)
       setValue('')
     }
     if (escPressed && editStatus) {
-      closeSearch()
+      closeSearch(editItem)
     }
   })
+  useEffect(() => {
+    const newFile = files.find(file => file.isNew)
+    console.log('newFile', newFile)
+    if (newFile) {
+      setEditStatus(newFile.id)
+      setValue(newFile.title)
+    }
+  }, [files])
+  useEffect(() => {
+    if (editStatus) {
+      node.current.focus()
+    }
+  }, [editStatus])
   return (
     <ul className="list-group list-group-flush file-list">
       {
         files.map(file => (
           <li
-            className="list-group-item bg-light row d-flex align-items-center file-item"
+            className="list-group-item bg-light row d-flex align-items-center file-item mx-0"
             key={file.id}
           >
-            { (file.id !== editStatus) &&
+            { (file.id !== editStatus && !file.isNew) &&
               <>
                 <span className="col-2">
                   <FontAwesomeIcon
@@ -49,14 +66,14 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                   />
                 </span>
                 <span
-                  className="col-8 c-link"
+                  className="col-6 c-link"
                   onClick={() => onFileClick(file.id)}
                 >
                   {file.title}
                 </span>
                 <button
                   type="button"
-                  className="icon-button col-1"
+                  className="icon-button col-2"
                   onClick={() => { setEditStatus(file.id); setValue(file.title) }}
                 >
                   <FontAwesomeIcon
@@ -67,7 +84,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                 </button>
                 <button
                   type="button"
-                  className="icon-button col-1"
+                  className="icon-button col-2"
                   onClick={() => onFileDelete(file.id)}
                 >
                   <FontAwesomeIcon
@@ -78,19 +95,21 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                 </button>
               </>
             }
-            { (file.id === editStatus) &&
+            { ((file.id === editStatus) || file.isNew) &&
               <>
                 <span className="col-10">
                   <input
                     className="form-control"
                     value={value}
+                    ref={node}
+                    placeholder="请输入文件名称"
                     onChange={e => setValue(e.target.value)}
                   />
                 </span>
                 <button
                   type="button"
                   className="icon-button col-2"
-                  onClick={closeSearch}
+                  onClick={() => closeSearch(file)}
                 >
                   <FontAwesomeIcon
                     title="关闭"
