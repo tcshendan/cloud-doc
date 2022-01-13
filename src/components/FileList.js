@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2021-11-24 09:39:24
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-13 11:51:12
+ * @LastEditTime: 2022-01-13 16:55:38
  */
 import React, { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -38,7 +38,6 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   })
   useEffect(() => {
     const newFile = files.find(file => file.isNew)
-    console.log('newFile', newFile)
     if (newFile) {
       setEditStatus(newFile.id)
       setValue(newFile.title)

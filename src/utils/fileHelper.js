@@ -3,10 +3,9 @@
  * @Author: shendan
  * @Date: 2022-01-13 11:11:45
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-13 14:47:01
+ * @LastEditTime: 2022-01-13 16:55:16
  */
 const fs = window.require('fs').promises // 支持 promise 的 fs 对象
-console.log('fs', fs)
 
 const fileHelper = {
   readFile: (path) => {
