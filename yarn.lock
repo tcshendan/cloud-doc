@@ -1236,6 +1236,11 @@
     "global-agent" "^3.0.0"
     "global-tunnel-ng" "^2.7.1"
 
+"@electron/remote@^2.0.1":
+  "integrity" "sha512-bGX4/yB2bPZwXm1DsxgoABgH0Cz7oFtXJgkerB8VrStYdTyvhGAULzNLRn9rVmeAuC3VUDXaXpZIlZAZHpsLIA=="
+  "resolved" "https://registry.npmjs.org/@electron/remote/-/remote-2.0.1.tgz"
+  "version" "2.0.1"
+
 "@eslint/eslintrc@^0.3.0":
   "integrity" "sha512-1JTKgrOKAHVivSvOYw+sJOunkBjUOvjqWk1DPja7ZFhIS2mX/4EgTT8M7eTK9jrKhL/FvXXEbQwIs3pg1xp3dg=="
   "resolved" "https://registry.npmjs.org/@eslint/eslintrc/-/eslintrc-0.3.0.tgz"
@@ -4800,7 +4805,7 @@
   "resolved" "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.3.905.tgz"
   "version" "1.3.905"
 
-"electron@^16.0.1":
+"electron@^16.0.1", "electron@>= 10.0.0-beta.1":
   "integrity" "sha512-6TSDBcoKGgmKL/+W+LyaXidRVeRl1V4I81ZOWcqsVksdTMfM4AlxTgfaoYdK/nUhqBrUtuPDcqOyJE6Bc4qMpw=="
   "resolved" "https://registry.npmjs.org/electron/-/electron-16.0.1.tgz"
   "version" "16.0.1"

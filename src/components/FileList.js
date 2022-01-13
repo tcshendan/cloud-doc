@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2021-11-24 09:39:24
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-05 14:22:01
+ * @LastEditTime: 2022-01-13 11:51:12
  */
 import React, { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -28,7 +28,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   useEffect(() => {
     const editItem = files.find(file => file.id === editStatus)
     if (enterPressed && editStatus && value.trim() !== '') { 
-      onSaveEdit(editItem.id, value)
+      onSaveEdit(editItem.id, value, editItem.isNew)
       setEditStatus(false)
       setValue('')
     }
