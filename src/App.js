@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2021-11-23 09:57:22
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-13 18:03:50
+ * @LastEditTime: 2022-01-15 14:14:36
  */
 import React, { useState } from 'react'
 import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
@@ -21,7 +21,7 @@ import TabList from './components/TabList'
 // import defaultFiles from './utils/defaultFiles'
 
 // require node.js modules
-const path = window.require('path')
+const { join, basename, extname, dirname } = window.require('path')
 const remote = window.require('@electron/remote')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'Files Data' })
@@ -91,16 +91,23 @@ function App() {
     }
   }
   const deleteFile = (id) => {
-    fileHelper.deleteFile(files[id].path).then(() => {
-      delete files[id]
-      setFiles(files)
-      saveFilesToStore(files)
-      // close the tab if opend
-      tabClose(id)
-    })
+    if (files[id].isNew) {
+      // delete files[id]
+      const { [id]: value, ...afterDelete } = files
+      setFiles(afterDelete)
+    } else {
+      fileHelper.deleteFile(files[id].path).then(() => {
+        // delete files[id]
+        const { [id]: value, ...afterDelete } = files
+        setFiles(afterDelete)
+        saveFilesToStore(afterDelete)
+        // close the tab if opend
+        tabClose(id)
+      })
+    }
   }
   const updateFileName = (id, title, isNew) => {
-    const newPath = path.join(savedLocation, `${title}.md`)
+    const newPath = isNew ? join(savedLocation, `${title}.md`) : join(dirname(files[id].path), `${title}.md`)
     const modifiedFile = { ...files[id], title, isNew: false, path: newPath }
     const newFiles = {...files, [id]: modifiedFile}
     if (isNew) {
@@ -109,7 +116,7 @@ function App() {
         saveFilesToStore(newFiles)
       })
     } else {
-      const oldPath = path.join(savedLocation, `${files[id].title}.md`)
+      const oldPath = files[id].path
       fileHelper.renameFile(oldPath, newPath).then(() => {
         setFiles(newFiles)
         saveFilesToStore(newFiles)
@@ -132,8 +139,44 @@ function App() {
     setFiles({ ...files, [newID]: newFile })
   }
   const saveCurrentFile = () => {
-    fileHelper.writeFile(path.join(savedLocation, `${activeFile.title}.md`), activeFile.body).then(() => {
+    fileHelper.writeFile(activeFile.path, activeFile.body).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
+    })
+  }
+  const importFiles = () => {
+    remote.dialog.showOpenDialog({
+      title: '选择导入的 Markdown 文件',
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        {name: 'Markdown Files', extensions: ['md']}
+      ]
+    }).then(result => {
+      const paths = result.filePaths
+      if (Array.isArray(paths)) {
+        const filteredPaths = paths.filter(path => {
+          const alreadyAdded = Object.values(files).find(file => {
+            return file.path === path
+          })
+          return !alreadyAdded
+        })
+        const importFilesArr = filteredPaths.map(path => {
+          return {
+            id: uuidv4(),
+            title: basename(path, extname(path)),
+            path
+          }
+        })
+        const newFiles = { ...files, ...flattenArr(importFilesArr) }
+        setFiles(newFiles)
+        saveFilesToStore(newFiles)
+        if (importFilesArr.length > 0) {
+          remote.dialog.showMessageBox({
+            type: 'info',
+            title: `成功导入了${importFilesArr.length}个文件`,
+            message: `成功导入了${importFilesArr.length}个文件`
+          })
+        }
+      }
     })
   }
   
@@ -165,6 +208,7 @@ function App() {
                 text="导入"
                 colorClass="btn-success"
                 icon={faFileImport}
+                onBtnClick={importFiles}
               />
             </div>
           </div>
