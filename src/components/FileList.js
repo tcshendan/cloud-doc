@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2021-11-24 09:39:24
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-17 15:18:11
+ * @LastEditTime: 2022-01-18 14:27:42
  */
 import React, { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -100,7 +100,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                 >
                   {file.title}
                 </span>
-                <button
+                {/* <button
                   type="button"
                   className="icon-button col-2"
                   onClick={() => { setEditStatus(file.id); setValue(file.title) }}
@@ -121,7 +121,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                     size="lg"
                     icon={faTrash}
                   />
-                </button>
+                </button> */}
               </>
             }
             { ((file.id === editStatus) || file.isNew) &&

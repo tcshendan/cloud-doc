@@ -3,9 +3,9 @@
  * @Author: shendan
  * @Date: 2021-11-23 09:57:22
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-17 11:21:56
+ * @LastEditTime: 2022-01-18 16:27:20
  */
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from 'react-simplemde-editor';
 import { v4 as uuidv4 } from 'uuid'
@@ -19,9 +19,11 @@ import FileList from './components/FileList'
 import BottomBtn from './components/BottomBtn'
 import TabList from './components/TabList'
 // import defaultFiles from './utils/defaultFiles'
+import useIpcRenderer from './hooks/useIpcRenderer';
 
 // require node.js modules
 const { join, basename, extname, dirname } = window.require('path')
+const { ipcRenderer } = window.require('electron')
 const remote = window.require('@electron/remote')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'Files Data' })
@@ -83,11 +85,13 @@ function App() {
     }
   }
   const fileChange = (id, value) => {
-    const newFile = { ...files[id], body: value }
-    setFiles({...files, [id]: newFile})
-    // update unsavedFileIDs
-    if (!unsavedFileIDs.includes(id)) {
-      setUnsavedFileIDs([...unsavedFileIDs, id])
+    if (value !== files[id].body) {
+      const newFile = { ...files[id], body: value }
+      setFiles({...files, [id]: newFile})
+      // update unsavedFileIDs
+      if (!unsavedFileIDs.includes(id)) {
+        setUnsavedFileIDs([...unsavedFileIDs, id])
+      }
     }
   }
   const deleteFile = (id) => {
@@ -179,6 +183,21 @@ function App() {
       }
     })
   }
+
+  // useEffect(() => {
+  //   const callback = () => {
+  //     console.log('hello from menu')
+  //   }
+  //   ipcRenderer.on('create-new-file', callback)
+  //   return () => {
+  //     ipcRenderer.removeListener('create-new-file', callback)
+  //   }
+  // })
+  useIpcRenderer({
+    'create-new-file': createNewFile,
+    'import-file': importFiles,
+    'save-edit-file': saveCurrentFile
+  })
   
   return (
     <div className="App container-fluid">
@@ -229,18 +248,13 @@ function App() {
                 onCloseTab={tabClose}
               />
               <SimpleMDE
-                key={activeFile && activeFile.id}
+                // key={activeFile && activeFile.id}
                 value={activeFile && activeFile.body}
                 onChange={(value) => fileChange(activeFile.id, value)}
                 options={{
-                  minHeight: '515px'
+                  // minHeight: '515px',
+                  minHeight: '526px'
                 }}
-              />
-              <BottomBtn
-                text="保存"
-                colorClass="btn-success"
-                icon={faSave}
-                onBtnClick={saveCurrentFile}
               />
             </>
           }

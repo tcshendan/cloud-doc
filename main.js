@@ -3,10 +3,11 @@
  * @Author: shendan
  * @Date: 2021-11-23 10:01:01
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-13 14:44:29
+ * @LastEditTime: 2022-01-18 15:31:02
  */
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, Menu } = require('electron')
 const isDev = require('electron-is-dev')
+const menuTemplate = require('./src/menuTemplate')
 let mainWindow
 
 app.on('ready', () => {
@@ -27,4 +28,7 @@ app.on('ready', () => {
   const urlLocation = isDev ? 'http://localhost:3000' : 'dummyurl'
   mainWindow.loadURL(urlLocation)
   mainWindow.webContents.openDevTools({ mode: 'detach' })
+  // set the menu
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
 })
