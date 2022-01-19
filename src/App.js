@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2021-11-23 09:57:22
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-18 16:27:20
+ * @LastEditTime: 2022-01-19 11:12:53
  */
 import React, { useState, useEffect } from 'react'
 import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
@@ -27,6 +27,7 @@ const { ipcRenderer } = window.require('electron')
 const remote = window.require('@electron/remote')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'Files Data' })
+const settingsStore = new Store({ name: 'Settings Data' })
 
 const saveFilesToStore = (files) => {
   const fileStoreObj = objToArr(files).reduce((result, file) => {
@@ -50,7 +51,8 @@ function App() {
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
   const [searchedFiles, setSearchedFiles] = useState([])
   const filesArr = objToArr(files)
-  const savedLocation = remote.app.getPath('documents')
+  // const savedLocation = remote.app.getPath('documents')
+  const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
   const openedFiles = openedFileIDs.map(openID => {
     return files[openID]
   })
