@@ -3,9 +3,11 @@
  * @Author: shendan
  * @Date: 2022-01-21 11:32:54
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-21 13:42:50
+ * @LastEditTime: 2022-01-25 14:44:53
  */
+const axios = require('axios')
 const qiniu = require('qiniu')
+const fs = require('fs')
 
 class QiniuManager {
   constructor(accessKey, secretKey, bucket) {
@@ -38,6 +40,47 @@ class QiniuManager {
   deleteFile(key) {
     return new Promise((resolve, reject) => {
       this.bucketManager.delete(this.bucket, key, this._handleCallback(resolve, reject))
+    })
+  }
+  getBucketDomain() {
+    const reqURL = `http://uc.qbox.me/v2/domains?tbl=${this.bucket} HTTP/1.1`
+    const digest = qiniu.util.generateAccessToken(this.mac, reqURL)
+    return new Promise((resolve, reject) => {
+      qiniu.rpc.postWithoutForm(reqURL, digest, this._handleCallback(resolve, reject))
+    })
+  }
+  generateDownloadLink(key) {
+    const domainPromise = this.publicBucketDomain
+      ? Promise.resolve([this.publicBucketDomain]) : this.getBucketDomain() // 避免重复发请求 Promise.resolve返回一个Promise
+    return domainPromise.then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        const pattern = /^http?/
+        this.publicBucketDomain = pattern.test(data[0]) ? data[0] : `http://${data[0]}`
+        return this.bucketManager.publicDownloadUrl(this.publicBucketDomain, key)
+      } else {
+        throw Error('域名未找到，请查看储存空间是否已经过期')
+      }
+    })
+  }
+  downloadFile(key, downloadPath) {
+    return this.generateDownloadLink(key).then(link => {
+      const timeStamp = new Date().getTime()
+      const url = `${link}?timestamp=${timeStamp}`
+      return axios({
+        url,
+        method: 'GET',
+        responseType: 'stream',
+        headers: { 'Cache-Control': 'no-cache' }
+      })
+    }).then(response => {
+      const writer = fs.createWriteStream(downloadPath)
+      response.data.pipe(writer)
+      return new Promise((resolve, reject) => {
+        writer.on('finish', resolve)
+        writer.on('error', reject)
+      })
+    }).catch(err => {
+      return Promise.reject({ err: err.response })
     })
   }
   _handleCallback(resolve, reject) { // 高阶函数
