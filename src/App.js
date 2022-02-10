@@ -3,13 +3,13 @@
  * @Author: shendan
  * @Date: 2021-11-23 09:57:22
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-19 11:12:53
+ * @LastEditTime: 2022-02-10 16:11:10
  */
 import React, { useState, useEffect } from 'react'
 import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from 'react-simplemde-editor';
 import { v4 as uuidv4 } from 'uuid'
-import { flattenArr, objToArr } from './utils/helper'
+import { flattenArr, objToArr, timestampToString } from './utils/helper'
 import fileHelper from './utils/fileHelper'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -28,15 +28,18 @@ const remote = window.require('@electron/remote')
 const Store = window.require('electron-store')
 const fileStore = new Store({ name: 'Files Data' })
 const settingsStore = new Store({ name: 'Settings Data' })
+const getAutoSync = () => ['accessKey', 'secretKey', 'bucketName', 'enableAutoSync'].every(key => !!settingsStore.get(key))
 
 const saveFilesToStore = (files) => {
   const fileStoreObj = objToArr(files).reduce((result, file) => {
-    const { id, path, title, createdAt } = file
+    const { id, path, title, createdAt, isSynced, updatedAt } = file
     result[id] = {
       id,
       path,
       title,
-      createdAt
+      createdAt,
+      isSynced,
+      updatedAt
     }
     return result
   }, {})
@@ -145,8 +148,12 @@ function App() {
     setFiles({ ...files, [newID]: newFile })
   }
   const saveCurrentFile = () => {
-    fileHelper.writeFile(activeFile.path, activeFile.body).then(() => {
+    const { path, body, title } = activeFile
+    fileHelper.writeFile(path, body).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
+      if (getAutoSync()) {
+        ipcRenderer.send('upload-file', { key: `${title}.md`, path })
+      }
     })
   }
   const importFiles = () => {
@@ -195,10 +202,18 @@ function App() {
   //     ipcRenderer.removeListener('create-new-file', callback)
   //   }
   // })
+  const activeFileUploaded = () => {
+    const { id } = activeFile
+    const modifiedFile = { ...files[id], isSynced: true, updatedAt: new Date().getTime() }
+    const newFiles = { ...files, [id]: modifiedFile }
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+  }
   useIpcRenderer({
     'create-new-file': createNewFile,
     'import-file': importFiles,
-    'save-edit-file': saveCurrentFile
+    'save-edit-file': saveCurrentFile,
+    'active-file-uploaded': activeFileUploaded,
   })
   
   return (
@@ -257,7 +272,10 @@ function App() {
                   // minHeight: '515px',
                   minHeight: '526px'
                 }}
-              />
+            />
+            {activeFile.isSynced &&
+              <span className="sync-status">已同步，上次同步{timestampToString(activeFile.updatedAt)}</span>
+            }
             </>
           }
         </div>

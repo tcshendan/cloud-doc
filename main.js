@@ -3,16 +3,24 @@
  * @Author: shendan
  * @Date: 2021-11-23 10:01:01
  * @LastEditors: shendan
- * @LastEditTime: 2022-02-10 14:43:11
+ * @LastEditTime: 2022-02-10 15:55:20
  */
-const { app, Menu, ipcMain, BrowserWindow } = require('electron')
+const { app, Menu, ipcMain, dialog } = require('electron')
 const isDev = require('electron-is-dev')
 const path = require('path')
 const menuTemplate = require('./src/menuTemplate')
 const AppWindow = require('./src/AppWindow')
-const Store = window.require('electron-store')
+const Store = require('electron-store')
+const QiniuManager = require('./src/QiniuManager')
 const settingsStore = new Store({ name: 'Settings Data' })
 let mainWindow, settingsWindow
+
+const createManager = () => {
+  const accessKey = settingsStore.get('accessKey')
+  const secretKey = settingsStore.get('secretKey')
+  const bucketName = settingsStore.get('bucketName')
+  return new QiniuManager(accessKey, secretKey, bucketName)
+}
 
 app.on('ready', () => {
 
@@ -35,32 +43,26 @@ app.on('ready', () => {
   Menu.setApplicationMenu(menu)
   // hook up main events
   ipcMain.on('open-settings-window', () => {
-    // const settingsWindowConfig = {
-    //   width: 500,
-    //   height: 400,
-    //   parent: mainWindow
-    // }
-    // const settingsFileLocation = `file://${path.join(__dirname, './settings/settings.html')}`
-    // settingsWindow = new AppWindow(settingsWindowConfig, settingsFileLocation)
-    // require('@electron/remote/main').enable(settingsWindow.webContents)
-    settingsWindow = new BrowserWindow({
+    const settingsWindowConfig = {
       width: 500,
       height: 400,
-      parent: mainWindow,
-      webPreferences: {
-        // 开启node
-        nodeIntegration: true,
-        contextIsolation: false,
-        // 开启remote
-        enableRemoteModule: true
-      }
-    })
-    settingsWindow.loadFile('./settings/settings.html')
+      parent: mainWindow
+    }
+    const settingsFileLocation = `file://${path.join(__dirname, './settings/settings.html')}`
+    settingsWindow = new AppWindow(settingsWindowConfig, settingsFileLocation)
     require('@electron/remote/main').enable(settingsWindow.webContents)
-    settingsWindow.webContents.openDevTools({ mode: 'detach' })
     settingsWindow.removeMenu()
     settingsWindow.on('close', () => {
       settingsWindow = null
+    })
+  })
+  ipcMain.on('upload-file', (event, data) => {
+    const manager = createManager()
+    manager.uploadFile(data.key, data.path).then(data => {
+      console.log('上传成功', data)
+      mainWindow.webContents.send('active-file-uploaded')
+    }).catch(() => {
+      dialog.showErrorBox('同步失败', '请检查七牛云参数是否正确')
     })
   })
   ipcMain.on('config-is-saved', () => {
