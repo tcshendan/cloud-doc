@@ -3,9 +3,9 @@
  * @Author: shendan
  * @Date: 2021-11-23 10:01:01
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-19 11:15:10
+ * @LastEditTime: 2022-02-10 13:14:25
  */
-const { app, Menu, ipcMain } = require('electron')
+const { app, Menu, ipcMain, BrowserWindow } = require('electron')
 const isDev = require('electron-is-dev')
 const path = require('path')
 const menuTemplate = require('./src/menuTemplate')
@@ -30,14 +30,29 @@ app.on('ready', () => {
   })
   // hook up main events
   ipcMain.on('open-settings-window', () => {
-    const settingsWindowConfig = {
+    // const settingsWindowConfig = {
+    //   width: 500,
+    //   height: 400,
+    //   parent: mainWindow
+    // }
+    // const settingsFileLocation = `file://${path.join(__dirname, './settings/settings.html')}`
+    // settingsWindow = new AppWindow(settingsWindowConfig, settingsFileLocation)
+    // require('@electron/remote/main').enable(settingsWindow.webContents)
+    settingsWindow = new BrowserWindow({
       width: 500,
       height: 400,
-      parent: mainWindow
-    }
-    const settingsFileLocation = `file://${path.join(__dirname, './settings/settings.html')}`
-    settingsWindow = new AppWindow(settingsWindowConfig, settingsFileLocation)
+      parent: mainWindow,
+      webPreferences: {
+        // 开启node
+        nodeIntegration: true,
+        contextIsolation: false,
+        // 开启remote
+        enableRemoteModule: true
+      }
+    })
+    settingsWindow.loadFile('./settings/settings.html')
     require('@electron/remote/main').enable(settingsWindow.webContents)
+    settingsWindow.removeMenu()
     settingsWindow.on('close', () => {
       settingsWindow = null
     })
