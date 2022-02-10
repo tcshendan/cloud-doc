@@ -3,7 +3,7 @@
  * @Author: shendan
  * @Date: 2022-01-21 11:32:54
  * @LastEditors: shendan
- * @LastEditTime: 2022-01-25 14:44:53
+ * @LastEditTime: 2022-02-10 16:22:36
  */
 const axios = require('axios')
 const qiniu = require('qiniu')
@@ -47,6 +47,11 @@ class QiniuManager {
     const digest = qiniu.util.generateAccessToken(this.mac, reqURL)
     return new Promise((resolve, reject) => {
       qiniu.rpc.postWithoutForm(reqURL, digest, this._handleCallback(resolve, reject))
+    })
+  }
+  getStat(key) {
+    return new Promise((resolve, reject) => {
+      this.bucketManager.stat(this.bucket, key, this._handleCallback(resolve, reject))
     })
   }
   generateDownloadLink(key) {
