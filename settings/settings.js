@@ -3,8 +3,9 @@
  * @Author: shendan
  * @Date: 2022-01-19 09:40:43
  * @LastEditors: shendan
- * @LastEditTime: 2022-02-10 13:39:31
+ * @LastEditTime: 2022-02-10 14:29:58
  */
+const { ipcRenderer } = require("electron")
 const remote = window.require('@electron/remote')
 const Store = window.require('electron-store')
 const settingsStore = new Store({ name: 'Settings Data' })
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsStore.set(id, value ? value : '')
       }
     })
+    ipcRenderer.send('config-is-saved')
     remote.getCurrentWindow().close()
   })
   $('.nav-tabs').addEventListener('click', (e) => {
